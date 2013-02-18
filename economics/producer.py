@@ -54,11 +54,14 @@ class Firm(object):
         >>> f = Firm(q, p, q**2/1000., SFC=1000)
         >>> f.supply()
         Piecewise((0, p < 1000.0), (500.0*p, And(0 <= p, p >= 1000.0)))
+        >>> f = Firm(q, p, 10*q, SFC=0, FC=0)
+        >>> f.supply()
+        p - 10 == 0
         """
         min_atc, min_atc_cond = self.min_atc_sfc()
         supply, supply_cond = tools.maximize(self.earnings(), over=self.q)
         if supply is None:
-            return 0
+            return sp.Eq(sp.diff(self.earnings(), self.q), 0)
         return sp.Piecewise((0, sp.Lt(self.p, min_atc)),
                             (supply, sp.And(sp.Ge(self.p, min_atc),
                                             supply_cond,
@@ -95,7 +98,11 @@ class ProducerAggregate(object):
     def supply(self):
         aggregate = sp.Piecewise((0, True))
         for firm, n in self.firms():
-            aggregate = sp.piecewise_fold(aggregate + n*firm.supply())
+            supply = firm.supply()
+            if isinstance(supply, sp.relational.Relational):
+                aggregate = sp.piecewise_fold(aggregate + firm.supply())
+            else:
+                aggregate = sp.piecewise_fold(aggregate + n*firm.supply())
         return aggregate
 
     def surplus_at(self, p_var, p_at, rational=True):

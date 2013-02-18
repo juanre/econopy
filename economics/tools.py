@@ -58,6 +58,15 @@ def maximize(fn, over):
 def minimize(fn, over):
     return extreme(fn, over, maximizing=False)
 
+def implicit(variable, expression):
+    """In most cases we want an implicit relationship.  For example,
+    when we define demand we say 100-p, and the q= is implicit.  But
+    in some cases we want to make the relationship explicit, like for
+    example when supply is just a fixed p.
+    """
+    if isinstance(expression, sp.relational.Relational):
+        return expression
+    return expression-variable
 
 def benefit_from_marginal(x, p, bp):
     """Converts the derivative of the benefit to the benefit.  It
@@ -68,10 +77,10 @@ def benefit_from_marginal(x, p, bp):
     (x, p)
     >>> sp.simplify(benefit_from_marginal(x, p, 10/(x+1)) - 10*sp.log(x+1))
     0
+    >>> sp.simplify(benefit_from_marginal(x, p, sp.Eq(p, 10/(x+1))) - 10*sp.log(x+1))
+    0
     """
-    ## We don't have to solve bp-p, but this way we are robust to
-    ## appearances of p in bp.
-    return sp.integrate(sp.solve(bp-p, p)[0], (x, 0, x))
+    return sp.integrate(sp.solve(implicit(p, bp), p)[0], (x, 0, x))
 
 def benefit_from_demand(x, p, demand):
     """Converts the demand curve to the benefit.  It assumes that the
@@ -81,8 +90,10 @@ def benefit_from_demand(x, p, demand):
     (x, p)
     >>> sp.simplify(benefit_from_demand(x, p, 10/p -1) - 10*sp.log(x+1))
     0
+    >>> sp.simplify(benefit_from_demand(x, p, sp.Eq(x, 10/p -1)) - 10*sp.log(x+1))
+    0
     """
-    return sp.integrate(sp.solve(demand-x, p)[0], (x, 0, x))
+    return sp.integrate(sp.solve(implicit(x, demand), p)[0], (x, 0, x))
 
 def min_cost_from_production(q, k, l, r, w, F):
     """Given the production function F find the expression of the
@@ -110,8 +121,10 @@ def cost_from_supply(q, p, supply):
     (q, p, a)
     >>> sp.simplify(cost_from_supply(q, p, 10*a*p) - q**2/(20*a))
     0
+    >>> sp.simplify(cost_from_supply(q, p, sp.Eq(q, 10*a*p)) - q**2/(20*a))
+    0
     """
-    return sp.integrate(sp.solve(supply-q, p)[0], (q, 0, q))
+    return sp.integrate(sp.solve(implicit(q, supply), p)[0], (q, 0, q))
 
 def cost_from_marginal(q, p, bp):
     """Converts the derivative of the cost to the cost.  It
@@ -122,10 +135,10 @@ def cost_from_marginal(q, p, bp):
     (q, p)
     >>> cost_from_marginal(q, p, 2*q)
     q**2
+    >>> cost_from_marginal(q, p, sp.Eq(p, 100))
+    100*q
     """
-    ## We don't have to solve bp-p, but this way we are robust to
-    ## appearances of p in bp.
-    return sp.integrate(sp.solve(bp-p, p)[0], (q, 0, q))
+    return sp.integrate(sp.solve(implicit(p, bp), p)[0], (q, 0, q))
 
 def aggregate_iterator(over):
     """Aggregates are lists that might contain tuples (obj, n), or

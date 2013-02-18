@@ -3,7 +3,7 @@
 import sympy as sp
 from consumer import Consumer, ConsumerAggregate
 from producer import Firm, ProducerAggregate
-
+import economics.tools as et
 
 class Market(object):
     def __init__(self, q, p, demand, supply, deluded_demand=None):
@@ -30,22 +30,30 @@ class Market(object):
         ...              firm_aggregate.supply())
         >>> mkt.equilibrium()
         (10, 100)
+        >>> mkt = Market(x, p,
+        ...              demand=1000-p,
+        ...              supply=sp.Eq(p, 100))
+        >>> mkt.equilibrium()
+        (100, 900)
         """
         demand = self.demand
         if not rational:
             demand = self.deluded_demand
-        peq = sp.solve(sp.piecewise_fold(demand - self.supply),
-                       self.p)
-        if not peq:
+        #peq = sp.solve(sp.piecewise_fold(demand - self.supply),
+        #           self.p)
+        eq = sp.solve((et.implicit(self.q, demand),
+                       et.implicit(self.q, self.supply)),
+                      self.p, self.q, dict=True)
+        if not eq:
             return None, None
-        peq = peq[-1]
-        return peq, self.supply.subs(self.p, peq)
+        eq = eq[-1]
+        return eq[self.p], eq[self.q] #self.supply.subs(self.p, peq)
 
     def total_cost(self):
-        return sp.integrate(self.supply, (self.q, 0, self.q))
+        return et.cost_from_supply(self.q, self.p, self.supply)
 
     def total_benefit(self):
-        return sp.integrate(self.demand, (self.q, 0, self.q))
+        return et.benefit_from_demand(self.q, self.p, self.demand)
 
     def total_cost_at_p(self):
         return self.total_cost().subs(self.q, self.demand)
@@ -67,13 +75,14 @@ class Market(object):
         peq, qeq = self.equilibrium()
         if peq is None:
             return 0
-        return sp.integrate(self.demand, (self.q, 0, qeq)) - peq*qeq
+        benefit = self.total_benefit()
+        return benefit.subs(self.q, qeq) - peq*qeq
 
     def producer_surplus(self):
         peq, qeq = self.equilibrium()
         if peq is None:
             return 0
-        return peq*qeq - sp.integrate(self.supply, (self.q, 0, qeq))
+        return peq*qeq - self.total_cost().subs(self.q, qeq)
 
     def free_market_social_surplus(self):
         """
