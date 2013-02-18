@@ -1,0 +1,6 @@
+economics --- Classical economics in Python
+
+This module contains an implementation of classical economics.  It has been inspired by the great Coursera class Principles of Economics for Scientists, taught by Caltech's Prof. Antonio Rangel.  It uses SymPy (http://sympy.org/en/index.html) to do symbolic math operations. 
+
+I have tried to make the implementation clear rather than efficient.  Code is functional and precise, and I believe it gives another dimension to the mathematical description of the concepts.  It is also naturaly suited to explore them, focusing on the concepts rather than the mechanics of algebra and calculus. 
+

@@ -1,0 +1,14 @@
+*~
+*.xfasl
+*.pyc
+.emacs-bu/*
+MANIFEST
+build/*
+dist/*
+guessed/*
+.DS_Store
+*.egg-info
+openmet/test/guessed/*
+TAGS
+test-store
+store
