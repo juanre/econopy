@@ -97,6 +97,9 @@ def benefit_from_demand(x, p, demand):
     >>> sp.simplify(benefit_from_demand(x, p, 100-p) -
     ...             (-x**2/2 + 100*x))
     0
+    >>> benefit_from_demand(x, p, sp.Piecewise((0, p < 0),
+    ...                                        (-p + 100, p <= 100),
+    ...                                        (0, True)))
     """
     if isinstance(demand, sp.relational.Relational):
         return sp.integrate(sp.solve(demand, p)[0], (x, 0, x))
