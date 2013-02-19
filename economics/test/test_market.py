@@ -26,6 +26,12 @@ class MarketTest(unittest.TestCase):
         mkt = Market(q, p, demand=1000-p, supply=sp.Eq(p, 250))
         self.assertEqual(mkt.free_market_social_surplus(), 281250)
 
+        firm = Firm(q, p, variable_cost=q**2/2,
+                    SFC=0, FC=0)
+        print firm.supply()
+        market = Market(q, p, 100-p, firm.supply())
+        print market.equilibrium()
+
 
 if __name__ == '__main__':
     unittest.main()

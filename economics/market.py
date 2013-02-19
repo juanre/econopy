@@ -39,15 +39,18 @@ class Market(object):
         demand = self.demand
         if not rational:
             demand = self.deluded_demand
-        #peq = sp.solve(sp.piecewise_fold(demand - self.supply),
-        #           self.p)
         eq = sp.solve((et.implicit(self.q, demand),
                        et.implicit(self.q, self.supply)),
                       self.p, self.q, dict=True)
-        if not eq:
-            return None, None
-        eq = eq[-1]
-        return eq[self.p], eq[self.q] #self.supply.subs(self.p, peq)
+        if eq:
+            eq = eq[-1]
+            return eq[self.p], eq[self.q] #self.supply.subs(self.p, peq)
+
+        peq = sp.solve(sp.piecewise_fold(demand - self.supply), self.p)
+        if peq:
+            peq = peq[-1]
+            return peq, self.supply.subs(self.p, peq)
+        return None, None
 
     def total_cost(self):
         return et.cost_from_supply(self.q, self.p, self.supply)
