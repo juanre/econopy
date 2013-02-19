@@ -88,11 +88,30 @@ def benefit_from_demand(x, p, demand):
 
     >>> sp.var('x p')
     (x, p)
-    >>> sp.simplify(benefit_from_demand(x, p, 10/p -1) - 10*sp.log(x+1))
+    >>> sp.simplify(benefit_from_demand(x, p, 10/p -1) -
+    ...             10*sp.log(x+1))
     0
-    >>> sp.simplify(benefit_from_demand(x, p, sp.Eq(x, 10/p -1)) - 10*sp.log(x+1))
+    >>> sp.simplify(benefit_from_demand(x, p, sp.Eq(x, 10/p -1)) -
+    ...             10*sp.log(x+1))
+    0
+    >>> sp.simplify(benefit_from_demand(x, p, 100-p) -
+    ...             (-x**2/2 + 100*x))
     0
     """
+    if isinstance(demand, sp.relational.Relational):
+        return sp.integrate(sp.solve(demand, p)[0], (x, 0, x))
+    substracting = sp.solve(demand-x, p)
+    if substracting:
+        toint = substracting[0]
+    else:
+        substracting = sp.solve(demand, p)
+        if substracting:
+            toint = substracting[0] - x
+        else:
+            return None
+
+    return sp.integrate(toint, (x, 0, x))
+    return expression-variable
     return sp.integrate(sp.solve(implicit(x, demand), p)[0], (x, 0, x))
 
 def min_cost_from_production(q, k, l, r, w, F):
