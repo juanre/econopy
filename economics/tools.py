@@ -66,7 +66,7 @@ def implicit(variable, expression):
     """
     if isinstance(expression, sp.relational.Relational):
         return expression
-    return expression-variable
+    return sp.Eq(expression, variable)
 
 def benefit_from_marginal(x, p, bp):
     """Converts the derivative of the benefit to the benefit.  It
@@ -97,6 +97,10 @@ def benefit_from_demand(x, p, demand):
     >>> sp.simplify(benefit_from_demand(x, p, 100-p) -
     ...             (-x**2/2 + 100*x))
     0
+    >>> benefit_from_demand(x, p, sp.Piecewise((0, p < 0),
+    ...                                        (-p + 100, p <= 100),
+    ...                                        (0, True)))
+    -x**2/2 + 100*x
     """
     if isinstance(demand, sp.relational.Relational):
         return sp.integrate(sp.solve(demand, p)[0], (x, 0, x))
@@ -111,8 +115,7 @@ def benefit_from_demand(x, p, demand):
             return None
 
     return sp.integrate(toint, (x, 0, x))
-    return expression-variable
-    return sp.integrate(sp.solve(implicit(x, demand), p)[0], (x, 0, x))
+    #return sp.integrate(sp.solve(implicit(x, demand), p)[0], (x, 0, x))
 
 def min_cost_from_production(q, k, l, r, w, F):
     """Given the production function F find the expression of the
